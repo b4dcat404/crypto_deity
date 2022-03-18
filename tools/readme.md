@@ -25,6 +25,6 @@ ____
 ____
 # Установка UFW
 
-##Для установки UFW введите команду
+## Для установки UFW введите команду
 ```curl -s https://raw.githubusercontent.com/b4dcat404/crypto_deity/main/tools/ufw_install.sh | bash```
 ____
