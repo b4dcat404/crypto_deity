@@ -1,7 +1,7 @@
 #!/bin/bash
 cd $HOME
 if [ ! $OWNER ]; then
-	read -p "Название проекта (ноды): " OWNER
+	read -p 'Название проекта (ноды): ' OWNER
 fi
 echo 'Нода: ' $OWNER
 sleep 1
