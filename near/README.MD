@@ -405,3 +405,122 @@ journalctl -n 100 -f -u neard | ccze -A
 * После включения в набор валидатора валидатор должен выдавать более 90% назначенных блоков
 
 Проверьте состояние работы узла валидатора. Если отображается “Валидатор”, ваш пул выбран в текущем списке валидаторов.
+
+
+## 3. Создание пула
+
+NEAR использует фабрику пула ставок с внесенным в белый список контрактом на размещение ставок, чтобы гарантировать сохранность средств делегатов. Чтобы запустить валидатор в NEAR, пул ставок должен быть развернут в учетной записи NEAR и интегрирован в узел NEAR validator. Делегаторы должны использовать пользовательский интерфейс или командную строку для подключения к пулу. Пул ставок - это смарт-контракт, который развертывается в БЛИЖАЙШЕМ аккаунте.
+
+#### Развертывание контракта пула ставок
+##### Развертывание пула ставок
+Вызывает фабрику пула размещения, создает новый пул размещения с указанным именем и развертывает его с указанным идентификатором учетной записи.
+
+```
+near call factory.shardnet.near create_staking_pool '{"staking_pool_id": "<pool id>", "owner_id": "<accountId>", "stake_public_key": "<public key>", "reward_fee_fraction": {"numerator": 5, "denominator": 100}, "code_hash":"DD428g9eqLL8fWUxv8QSpVFzyHi1Qd16P8ephYCTmMSZ"}' --accountId="<accountId>" --amount=30 --gas=300000000000000
+```
+
+Из приведенного выше примера вам необходимо заменить:
+
+* **Pool ID**: Устанавливая имя пула, фабрика автоматически добавляет свое имя к этому параметру, создавая {pool_id}.{staking_pool_factory}
+Примеры:   
+
+- Если идентификатор пула равен stakewars создаст : `stakewars.factory.shardnet.near`
+
+* **Owner ID**: Учетная запись SHARDNET (т.е. stakewares.shardnet.near), которая будет управлять пулом ставок.
+* **Public Key**: Открытый ключ в вашем **validator_key.json** файле.
+* **5**: Плата, которую будет взимать пул (например, в данном случае 5 от 100 составляет 5% от сборов).
+* **Account Id**: Учетная запись SHARDNET, развертывающая и подписывающая протокол монтирования.  Обычно совпадает с идентификатором владельца.
+
+> Убедитесь, что в наличии имеется не менее 30 штук, это минимум, необходимый для хранения.
+Пример : near cal stake_wars_validator.factory.shardnet.near --amount 30 --accountId stakewars.shardnet.near --gas=300000000000000
+
+
+Чтобы изменить параметры пула, например, изменить размер взимаемой комиссии на 1% в приведенном ниже примере, используйте эту команду:
+```
+near call <pool_name> update_reward_fee_fraction '{"reward_fee_fraction": {"numerator": 1, "denominator": 100}}' --accountId <account_id> --gas=300000000000000
+```
+
+
+Вы увидите что-то вроде этого:
+
+![img](https://github.com/near/stakewars-iii/blob/main/challenges/images/images/pool.png?raw=true)
+
+Если в конце есть “True”. Ваш пул создан.
+
+**Теперь вы настроили свой пул ставок.**
+
+Проверьте, что ваш пул теперь виден на https://explorer.shardnet.near.org/nodes/validators
+
+
+#### Руководство по операциям
+##### Депохит с тейкинг NEAR
+
+Команда:
+```
+near call <staking_pool_id> deposit_and_stake --amount <amount> --accountId <accountId> --gas=300000000000000
+```
+##### Перестать стейкать NEAR
+Количество yoctoNEAR.
+
+Выполните следующую команду, чтобы отменить стейкинг:
+```
+near call <staking_pool_id> unstake '{"amount": "<amount yoctoNEAR>"}' --accountId <accountId> --gas=300000000000000
+```
+Чтобы отменить стейкинг всего, что вы можете запустить этот:
+```
+near call <staking_pool_id> unstake_all --accountId <accountId> --gas=300000000000000
+```
+##### Выводить
+
+Отмена стейкинга занимает 2-3 эпохи, после этого периода вы можете выйти в YoctoNEAR из пула.
+
+Команда:
+```
+near call <staking_pool_id> withdraw '{"amount": "<amount yoctoNEAR>"}' --accountId <accountId> --gas=300000000000000
+```
+Команда для вывода всей сумы:
+```
+near call <staking_pool_id> withdraw_all --accountId <accountId> --gas=300000000000000
+```
+
+##### Пинг
+Ping выдает новое предложение и обновляет баланс ставок для ваших делегатов. Пинг должен выдаваться каждую эпоху, чтобы сообщаемые награды оставались актуальными.
+
+Команда:
+```
+near call <staking_pool_id> ping '{}' --accountId <accountId> --gas=300000000000000
+```
+Балансы
+Общий Баланс
+Команда:
+```
+near view <staking_pool_id> get_account_total_balance '{"account_id": "<accountId>"}'
+```
+##### Баланс в стейкинге
+Команда:
+```
+near view <staking_pool_id> get_account_staked_balance '{"account_id": "<accountId>"}'
+```
+##### Баланс вне стейкинга
+Команда:
+```
+near view <staking_pool_id> get_account_unstaked_balance '{"account_id": "<accountId>"}'
+```
+##### Дсотупно для вывода
+Вы можете вывести средства из контракта только в том случае, если они разблокированы.
+
+Команда:
+```
+near view <staking_pool_id> is_account_unstaked_balance_available '{"account_id": "<accountId>"}'
+```
+##### Пауза / Возобновление стейкинга
+###### Пауза
+Команда:
+```
+near call <staking_pool_id> pause_staking '{}' --accountId <accountId>
+```
+###### Возобновление
+Команда:
+```
+near call <staking_pool_id> resume_staking '{}' --accountId <accountId>
+```
