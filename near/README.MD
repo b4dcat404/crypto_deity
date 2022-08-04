@@ -443,7 +443,7 @@ near call <pool_name> update_reward_fee_fraction '{"reward_fee_fraction": {"nume
 
 Вы увидите что-то вроде этого:
 
-![img](https://github.com/near/stakewars-iii/blob/main/challenges/images/images/pool.png?raw=true)
+![img](https://github.com/near/stakewars-iii/blob/main/challenges/images/pool.png?raw=true)
 
 Если в конце есть “True”. Ваш пул создан.
 
